@@ -1,0 +1,4 @@
+node_modules/
+pnpm-global/
+.cache
+out/
