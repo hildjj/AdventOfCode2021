@@ -7,5 +7,7 @@ export default {
   },
   nodeArguments: [
     "--loader=ts-node/esm",
+    "--experimental-specifier-resolution",
+    "node",
   ],
 };

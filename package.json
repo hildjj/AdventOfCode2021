@@ -6,7 +6,8 @@
   "type": "module",
   "scripts": {
     "lint": "eslint . --ext js,ts",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "ava",
+    "coverage": "c8 -r lcov ava"
   },
   "author": "Joe Hildebrand <joe-github@cursive.net>",
   "license": "MIT",
@@ -17,11 +18,15 @@
   "devDependencies": {
     "@peggyjs/eslint-config": "^1.0.1",
     "@types/node": "^16.11.11",
+    "@types/sinon": "^10.0.6",
     "@typescript-eslint/eslint-plugin": "^5.5.0",
     "@typescript-eslint/parser": "^5.5.0",
+    "ava": "^4.0.0-rc.1",
+    "c8": "^7.10.0",
     "eslint": "^8.3.0",
     "eslint-plugin-node": "^11.1.0",
     "eslint-plugin-tsdoc": "^0.2.14",
+    "sinon": "^12.0.1",
     "typescript": "^4.5.2"
   },
   "engines": {

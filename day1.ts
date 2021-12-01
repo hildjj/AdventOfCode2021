@@ -22,13 +22,11 @@ function part2(inp: number[]) {
       prev.shift();
     }
     prev.push(i);
-    console.log(prev);
     if (prev.length === 3) {
       const n = prev.reduce<number>((t, v) => t + v, 0);
       if (n > last) {
         count++;
       }
-      console.log(last, n, count)
       last = n;
     }
   }

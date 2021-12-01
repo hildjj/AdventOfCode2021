@@ -77,6 +77,9 @@ export default class Utils {
    * Utils.main(import.meta.url, main)
    */
   static main(metaUrl: string, mainFunc: mainCallback) {
+    if (process.argv.length < 2) {
+      return;
+    }
     const arg = process.argv[1];
     const argExt = path.extname(arg);
     const meta = url.fileURLToPath(metaUrl);
