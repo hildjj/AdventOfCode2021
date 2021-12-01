@@ -1,5 +1,5 @@
 #!/usr/bin/env node --loader ts-node/esm --experimental-specifier-resolution=node
-import Utils from "./utils.js";
+import Utils from "./utils.js"; // Really .ts
 
 function part1(inp: number[]) {
   let last = Infinity;
@@ -23,7 +23,7 @@ function part2(inp: number[]) {
     }
     prev.push(i);
     if (prev.length === 3) {
-      const n = prev.reduce<number>((t, v) => t + v, 0);
+      const n = prev.reduce((t, v) => t + v, 0);
       if (n > last) {
         count++;
       }
@@ -33,9 +33,7 @@ function part2(inp: number[]) {
   return count;
 }
 
-export default function main(
-  inFile: string, trace: boolean, args: unknown
-) {
+export default function main(inFile: string, trace: boolean) {
   const inp: number[] = Utils.parseFile(inFile, undefined, trace);
   return [part1(inp), part2(inp)];
 }
