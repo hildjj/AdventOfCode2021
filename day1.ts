@@ -1,5 +1,5 @@
 #!/usr/bin/env node --loader ts-node/esm --experimental-specifier-resolution=node
-import Utils from "./utils";
+import Utils from "./utils.js";
 
 function part1(inp: number[]) {
   let last = Infinity;

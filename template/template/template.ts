@@ -1,10 +1,10 @@
-import Utils from "./utils";
+import Utils from "./utils.js";
 
-function part1(inp: string[], args: Utils.mainParams) {
+function part1(inp: any, args: Utils.mainParams) {
   return 0;
 }
 
-function part2(inp: string[], args: Utils.mainParams) {
+function part2(inp: any, args: Utils.mainParams) {
   return 0;
 }
 

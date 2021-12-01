@@ -7,7 +7,8 @@
   "scripts": {
     "lint": "eslint . --ext js,ts",
     "test": "ava",
-    "coverage": "c8 -r lcov ava"
+    "coverage": "c8 -r lcov ava",
+    "ts": "tsc"
   },
   "author": "Joe Hildebrand <joe-github@cursive.net>",
   "license": "MIT",

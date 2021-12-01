@@ -1,4 +1,6 @@
 {
+  "include": [ "**/*.ts" ],
+  "exclude": [ "template/" ],
   "compilerOptions": {
     /* Visit https://aka.ms/tsconfig.json to read more about this file */
 
