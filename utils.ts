@@ -355,6 +355,51 @@ export default class Utils {
     }
   }
 
+  static* discard<T>(iterable: Iterable<T>, size: number):
+    Generator<T, void, undefined> {
+    const it = iterable[Symbol.iterator]();
+    for (let i = 0; i < size; i++) {
+      it.next();
+    }
+    yield* {
+      [Symbol.iterator]: () => it
+    };
+  }
+
+  static split<T>(iterable: Iterable<T>, size: number): [T[], Iterable<T>] {
+    const it = iterable[Symbol.iterator]();
+    const ret: T[] = [];
+    for (let i = 0; i < size; i++) {
+      const n = it.next();
+      if (n.done) {
+        break;
+      }
+      ret.push(n.value);
+    }
+    return [ret, {
+      [Symbol.iterator]: () => it
+    }];
+  }
+
+  static* windows<T>(iterable: Iterable<T>, size: number):
+    Generator<T[], void, undefined> {
+    const [buf, it] = this.split(iterable, size);
+    yield buf;
+    for (const t of it) {
+      buf.shift();
+      buf.push(t);
+      yield buf;
+    }
+  }
+
+  static count<T>(iterable: Iterable<T>): number {
+    let count = 0;
+    for (const _ of iterable) {
+      count++;
+    }
+    return count;
+  }
+
   // BELOW lifted from https://github.com/aureooms/js-itertools,
   // removed need for weird runtime
   // ----------
