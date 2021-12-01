@@ -2,3 +2,6 @@ node_modules/
 pnpm-global/
 .cache
 out/
+.cookies
+coverage/
+t.ts

@@ -5,8 +5,8 @@ module.exports = {
     "pnpm-global/",
     "out/",
   ],
-  extends: ["@peggyjs", "plugin:@typescript-eslint/recommended"],
-  plugins: ["node", "tsdoc"],
+  extends: ["@peggyjs"],
+  plugins: ["node"],
   env: {
     es2020: true,
   },
@@ -15,15 +15,10 @@ module.exports = {
     ecmaVersion: 2021,
   },
   rules: {
-    "@typescript-eslint/comma-dangle": ["error", {
-      "arrays": "only-multiline",
-      "objects": "only-multiline",
-      "imports": "never",
-      "exports": "never",
-      "functions": "never",
+    "capitalized-comments": ["error", "always",  {
+      "ignorePattern": "c8",
+      "ignoreConsecutiveComments": true,
     }],
-    "@typescript-eslint/no-explicit-any": "off",
-    "tsdoc/syntax": "error",
     "sort-imports": "error",
     // [Possible Errors](https://eslint.org/docs/rules/#possible-errors)
     "node/no-unsupported-features/es-syntax": [
@@ -34,4 +29,22 @@ module.exports = {
       },
     ],
   },
+  overrides: [
+    {
+      files: ["*.ts"],
+      plugins: ["tsdoc"],
+      extends: ["plugin:@typescript-eslint/recommended"],
+      rules: {
+        "@typescript-eslint/comma-dangle": ["error", {
+          "arrays": "only-multiline",
+          "objects": "only-multiline",
+          "imports": "never",
+          "exports": "never",
+          "functions": "never",
+        }],
+        "@typescript-eslint/no-explicit-any": "off",
+        "tsdoc/syntax": "error",
+      },
+    },
+  ],
 };

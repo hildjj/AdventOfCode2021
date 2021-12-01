@@ -1,6 +1,6 @@
 import * as fs from "fs";
 import * as path from "path";
-import * as peggy from "peggy";
+import peggy from "peggy";
 import url from "url";
 import util from "util";
 
@@ -57,6 +57,10 @@ type filterCallback<T> =
  * @returns The next value of the accumulator
  */
 type reduceCallback<T, A> = (accumulator: A, item: T, index: number) => A;
+
+interface FormattingError extends Error {
+  format(sources: peggy.SourceText[]): string;
+}
 
 /**
  * Utility functions.
@@ -136,7 +140,7 @@ export default class Utils {
     if (!filename) {
       filename = this._adjacentFile(".txt", "inputs");
     }
-    const txt = fs.readFileSync(filename, "utf8");
+    const text = fs.readFileSync(filename, "utf8");
 
     // @type {function}
     let parserFunc = null;
@@ -147,7 +151,21 @@ export default class Utils {
       const parserText = fs.readFileSync(parserFile, "utf8");
       parserFunc = peggy.generate(parserText, { trace }).parse;
     }
-    return parserFunc(txt);
+
+    try {
+      return parserFunc(text, {
+        grammarSource: filename,
+        sourceMap: "inline",
+        format: "es"
+      });
+    } catch (er) {
+      if (typeof (er as FormattingError).format === "function") {
+        console.error((er as FormattingError).format([
+          { source: filename, text },
+        ]));
+      }
+      throw er;
+    }
   }
 
   /**
@@ -155,10 +173,14 @@ export default class Utils {
    */
   static _adjacentFile(ext: string, ...dir: string[]): string {
     // Idiomatic tcl
-    const callerFile = this.callsites()[2].getFileName();
+    let callerFile = this.callsites()[2].getFileName();
     if (!callerFile) {
       throw new Error("No caller file name");
     }
+    if (callerFile.startsWith("file:")) {
+      callerFile = url.fileURLToPath(callerFile);
+    }
+
     const p = path.parse(callerFile);
     return path.join(p.dir, ...dir, p.name + ext);
   }
@@ -216,6 +238,8 @@ export default class Utils {
     if (typeof q === "number") {
       return [Math.floor(q) as T, r];
     }
+
+    /* c8 ignore next */
     throw new Error("Unreachable");
   }
 
@@ -230,7 +254,7 @@ export default class Utils {
    * @returns The predicate matched one of the items in the iterator.
    */
   static itSome<T>(
-    it: IterableIterator<T>,
+    it: Iterable<T>,
     f: itSomeCallback<T>,
     thisArg?: any
   ): boolean {
@@ -299,9 +323,7 @@ export default class Utils {
    * @param val - The value to yield.
    * @returns A generator yielding val forever.
    */
-  static* forEver(
-    val: number | bigint = 0
-  ): Generator<number | bigint, void, undefined> {
+  static* forEver<T>(val: T): Generator<T, void, undefined> {
     while (true) {
       yield val;
     }
