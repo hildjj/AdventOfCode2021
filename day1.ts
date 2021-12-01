@@ -14,21 +14,15 @@ function part1(inp: number[]) {
 }
 
 function part2(inp: number[]) {
-  const prev: number[] = [];
   let last = Infinity;
   let count = 0;
-  for (const i of inp) {
-    if (prev.length === 3) {
-      prev.shift();
+  let n = inp[0] + inp[1];
+  for (let i = 2; i < inp.length; i++) {
+    n = inp[i - 2] + inp[i - 1] + inp[i];
+    if (n > last) {
+      count++;
     }
-    prev.push(i);
-    if (prev.length === 3) {
-      const n = prev.reduce((t, v) => t + v, 0);
-      if (n > last) {
-        count++;
-      }
-      last = n;
-    }
+    last = n;
   }
   return count;
 }
