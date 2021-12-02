@@ -4,6 +4,7 @@ module.exports = {
     "coverage/",
     "pnpm-global/",
     "out/",
+    "template/",
   ],
   extends: ["@peggyjs"],
   plugins: ["node"],

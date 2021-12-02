@@ -1,4 +1,5 @@
 #!/usr/bin/env node --loader ts-node/esm --experimental-specifier-resolution=node
+import Sequence from "./sequence.js";
 import Utils from "./utils.js"; // Really .ts
 
 function part1(inp: number[]): number {
@@ -11,10 +12,10 @@ function part1(inp: number[]): number {
 }
 
 function part2(inp: number[]): number {
-  return Utils.count(Utils.filter(
-    Utils.windows(inp, 4),
-    w => w[3] > w[0]
-  ));
+  return new Sequence(inp)
+    .windows(4)
+    .filter(w => w[3] > w[0])
+    .count();
 }
 
 export default function main(inFile: string, trace: boolean) {
