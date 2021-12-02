@@ -2,14 +2,16 @@
 import Utils from "./utils.js"; // Really .ts
 
 function part1(inp: [number, number][]): number {
-  const [x, y] = inp.reduce((t, v) => [t[0] + v[0], t[1] + v[1]], [0, 0]);
+  const [x, y] = inp.reduce(([x, y], [dx, dy]) => [x + dx, y + dy], [0, 0]);
   return x * y;
 }
 
 function part2(inp: [number, number][]): number {
-  const { x, y } = inp.reduce((t, v) => {
-    const aim = t.aim + v[1];
-    return { x: t.x + v[0], y: t.y + (aim * v[0]), aim };
+  const { x, y } = inp.reduce(({ x, y, aim }, [dX, dAim]) => {
+    aim += dAim;
+    x += dX;
+    y += aim * dX;
+    return { x, y, aim };
   }, { x: 0, y: 0, aim: 0 });
   return x * y;
 }
