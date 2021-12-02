@@ -152,3 +152,20 @@ test("dedup", t => {
   ).join(""), "ABCb");
 });
 
+test("slice", t => {
+  const s = Sequence.range(10);
+  t.deepEqual([...s.slice()], [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
+  t.deepEqual([...s.slice(0, 0)], []);
+  t.deepEqual([...s.slice(0, -1)], [0, 1, 2, 3, 4, 5, 6, 7, 8]);
+  t.deepEqual([...s.slice(0, -12)], []);
+  t.deepEqual([...s.slice(3, -1)], [3, 4, 5, 6, 7, 8]);
+  t.deepEqual([...s.slice(12)], []);
+  t.deepEqual([...s.slice(-12)], [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
+  t.deepEqual([...s.slice(-2)], [8, 9]);
+  t.deepEqual([...s.slice(-2, -3)], []);
+  t.deepEqual([...s.slice(-2, -13)], []);
+  t.deepEqual([...s.slice(-2, -1)], [8]);
+  t.deepEqual([...s.slice(-4, -1)], [6, 7, 8]);
+  t.deepEqual([...s.slice(-4, 9)], [6, 7, 8]);
+  t.deepEqual([...s.slice(-4, 12)], [6, 7, 8, 9]);
+});

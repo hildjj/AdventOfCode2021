@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-this-alias */
 /**
  * @param item - The item of the iterator to check.
  * @param index - The index of the item in the iterator.
@@ -82,24 +83,22 @@ export default class Sequence<T> {
    * @returns A generator that yields each number in the range
    */
   static range(start: number, stop?: number, step = 1): Sequence<number> {
-    function* f(): Generator<number, void, undefined> {
-      // eslint-disable-next-line eqeqeq, no-eq-null
-      if (stop == null) {
-        [start, stop] = [0, start];
-      }
-      if (step < 0) {
-        while (start > stop) {
-          yield start;
-          start += step;
+    return new Sequence({
+      * [Symbol.iterator]() {
+        if (stop === undefined) {
+          [start, stop] = [0, start];
         }
-      } else {
-        while (start < stop) {
-          yield start;
-          start += step;
+        if (step < 0) {
+          for (let i = start; i > stop; i += step) {
+            yield i;
+          }
+        } else {
+          for (let i = start; i < stop; i += step) {
+            yield i;
+          }
         }
       }
-    }
-    return new Sequence(f());
+    });
   }
 
   /**
@@ -110,22 +109,23 @@ export default class Sequence<T> {
    * @returns A generator yielding each of the combinations of the iterables.
    */
   static product<U>(seqs: Sequence<U>[], repeat = 1): Sequence<U[]> {
-    function* f(): Generator<U[], void, undefined> {
-      const aseqs: U[][] = seqs.map<U[]>(s => s.toArray());
-      const pools = new Sequence(aseqs).ncycle(repeat);
-      let result: U[][] = [[]];
-      for (const pool of pools) {
-        const r2: U[][] = [];
-        for (const x of result) {
-          for (const y of pool) {
-            r2.push(x.concat(y));
+    return new Sequence({
+      * [Symbol.iterator]() {
+        const aseqs: U[][] = seqs.map<U[]>(s => s.toArray());
+        const pools = new Sequence(aseqs).ncycle(repeat);
+        let result: U[][] = [[]];
+        for (const pool of pools) {
+          const r2: U[][] = [];
+          for (const x of result) {
+            for (const y of pool) {
+              r2.push(x.concat(y));
+            }
+            result = r2;
           }
-          result = r2;
         }
+        yield* result;
       }
-      yield* result;
-    }
-    return new Sequence<U[]>(f());
+    });
   }
 
   /**
@@ -136,12 +136,13 @@ export default class Sequence<T> {
    * @returns A Sequence yielding val forever.
    */
   static forEver<U>(val: U): Sequence<U> {
-    function* f(): Generator<U, void, undefined> {
-      while (true) {
-        yield val;
+    return new Sequence({
+      * [Symbol.iterator]() {
+        while (true) {
+          yield val;
+        }
       }
-    }
-    return new Sequence(f());
+    });
   }
 
   /**
@@ -178,12 +179,13 @@ export default class Sequence<T> {
    * @returns A sequence with all of the items of each sequence in order.
    */
   static concat<T>(...seqs: Sequence<T>[]): Sequence<T> {
-    function* f(): Generator<T, void, undefined> {
-      for (const s of seqs) {
-        yield* s;
+    return new Sequence({
+      * [Symbol.iterator]() {
+        for (const s of seqs) {
+          yield* s;
+        }
       }
-    }
-    return new Sequence(f());
+    });
   }
 
   /**
@@ -254,12 +256,14 @@ export default class Sequence<T> {
    * @returns A generator yielding each subset.
    */
   powerset(): Sequence<T[]> {
-    function* f(this: Sequence<T>) {
-      for (const len of Sequence.range(this.count() + 1)) {
-        yield* this.combinations(len);
+    const that = this;
+    return new Sequence({
+      * [Symbol.iterator]() {
+        for (const len of Sequence.range(that.count() + 1)) {
+          yield* that.combinations(len);
+        }
       }
-    }
-    return new Sequence(f.call(this));
+    });
   }
 
   /**
@@ -272,15 +276,17 @@ export default class Sequence<T> {
    * @returns A generator that yields iterable values that match.
    */
   filter(fn: filterCallback<T>, thisArg?: any): Sequence<T> {
-    function* f(this: Sequence<T>): Generator<T, void, undefined> {
-      let count = 0;
-      for (const val of this.it) {
-        if (fn.call(thisArg, val, count++, this)) {
-          yield val;
+    const that = this;
+    return new Sequence({
+      * [Symbol.iterator]() {
+        let count = 0;
+        for (const val of that.it) {
+          if (fn.call(thisArg, val, count++, that)) {
+            yield val;
+          }
         }
       }
-    }
-    return new Sequence(f.call(this));
+    });
   }
 
   /**
@@ -309,7 +315,6 @@ export default class Sequence<T> {
    * @returns A new Sequence
    */
   discard(size: number): Sequence<T> {
-    // eslint-disable-next-line @typescript-eslint/no-this-alias
     const that = this;
     return new Sequence({
       [Symbol.iterator]() {
@@ -340,6 +345,8 @@ export default class Sequence<T> {
       }
       ret.push(n.value);
     }
+
+    // FIX: this sequence is not re-usable.
     return [ret, new Sequence<T>({
       [Symbol.iterator]: () => it
     })];
@@ -352,16 +359,18 @@ export default class Sequence<T> {
    * @returns A new sequence that generates each window
    */
   windows(size: number): Sequence<T[]> {
-    function* f(this: Sequence<T>): Generator<T[], void, undefined> {
-      const [buf, it] = this.split(size);
-      yield buf;
-      for (const t of it) {
-        buf.shift();
-        buf.push(t);
+    const that = this;
+    return new Sequence({
+      * [Symbol.iterator]() {
+        const [buf, it] = that.split(size);
         yield buf;
+        for (const t of it) {
+          buf.shift();
+          buf.push(t);
+          yield buf;
+        }
       }
-    }
-    return new Sequence(f.call(this));
+    });
   }
 
   /**
@@ -392,15 +401,17 @@ export default class Sequence<T> {
    * @returns A generator that yields the selected items
    */
   pick(it: Iterable<number>): Sequence<T> {
-    function* f(this: Sequence<T>): Generator<T, void, undefined> {
-      // This is slower than it should be, but `it` might be out
-      // of order, and so might `source`.
-      const pool = this.toArray();
-      for (const i of it) {
-        yield pool[i];
+    const pool = this.toArray();
+    return new Sequence({
+      * [Symbol.iterator]() {
+        // This is slower than it should be, but `it` might be out
+        // of order, and so might `source`.
+
+        for (const i of it) {
+          yield pool[i];
+        }
       }
-    }
-    return new Sequence(f.call(this));
+    });
   }
 
   /**
@@ -410,38 +421,39 @@ export default class Sequence<T> {
    * @returns A generator that yields each combination
    */
   combinations(r: number): Sequence<T[]> {
-    function* f(this: Sequence<T>): Generator<T[], void, undefined> {
-      const pool = this.toArraySequence();
-      const length = pool.count();
+    const pool = this.toArraySequence();
+    return new Sequence({
+      * [Symbol.iterator]() {
+        const length = pool.count();
 
-      if (r > length) {
-        return;
-      }
-
-      const indices = [...Sequence.range(r)];
-      yield [...pool.pick(indices)];
-
-      while (true) {
-        let i = r - 1;
-        while (i >= 0) {
-          if (indices[i] !== i + length - r) {
-            let pivot = ++indices[i];
-            for (++i; i < r; ++i) {
-              indices[i] = ++pivot;
-            }
-            break;
-          }
-          i--;
-        }
-
-        if (i < 0) {
+        if (r > length) {
           return;
         }
 
+        const indices = [...Sequence.range(r)];
         yield [...pool.pick(indices)];
+
+        while (true) {
+          let i = r - 1;
+          while (i >= 0) {
+            if (indices[i] !== i + length - r) {
+              let pivot = ++indices[i];
+              for (++i; i < r; ++i) {
+                indices[i] = ++pivot;
+              }
+              break;
+            }
+            i--;
+          }
+
+          if (i < 0) {
+            return;
+          }
+
+          yield [...pool.pick(indices)];
+        }
       }
-    }
-    return new Sequence(f.call(this));
+    });
   }
 
   /**
@@ -453,32 +465,34 @@ export default class Sequence<T> {
    * @returns A generator that yields the front of the input
    */
   trunc(n: number): Sequence<T> {
-    function* f(this: Sequence<T>): Generator<T, void, undefined> {
-      if (n < 0) {
-        yield* this.take(-n);
-        return;
-      }
-
-      if (n === 0) {
-        yield* this.it;
-        return;
-      }
-
-      // Buffer up n entries, then serve old ones as we go
-      const buffer = new Array(n);
-      let cur = 0;
-      let left = n;
-      for (const value of this.it) {
-        if (left > 0) {
-          left--;
-        } else {
-          yield buffer[cur];
+    const that = this;
+    return new Sequence({
+      * [Symbol.iterator]() {
+        if (n < 0) {
+          yield* that.take(-n);
+          return;
         }
-        buffer[cur] = value;
-        cur = (cur + 1) % n;
+
+        if (n === 0) {
+          yield* that.it;
+          return;
+        }
+
+        // Circular buffer up n entries, then serve old ones as we go
+        const buffer = new Array(n);
+        let cur = 0;
+        let left = n;
+        for (const value of that.it) {
+          if (left > 0) {
+            left--;
+          } else {
+            yield buffer[cur];
+          }
+          buffer[cur] = value;
+          cur = (cur + 1) % n;
+        }
       }
-    }
-    return new Sequence(f.call(this));
+    });
   }
 
   /**
@@ -490,24 +504,26 @@ export default class Sequence<T> {
    * @returns A generator that yields the front of the input
    */
   take(n: number): Sequence<T> {
-    function* f(this: Sequence<T>): Generator<T, void, undefined> {
-      if (n === 0) {
-        return;
-      }
-
-      if (n < 0) {
-        yield* this.trunc(-n);
-        return;
-      }
-
-      for (const val of this.it) {
-        yield val;
-        if (--n <= 0) {
+    const that = this;
+    return new Sequence({
+      * [Symbol.iterator]() {
+        if (n === 0) {
           return;
         }
+
+        if (n < 0) {
+          yield* that.trunc(-n);
+          return;
+        }
+
+        for (const val of that.it) {
+          yield val;
+          if (--n <= 0) {
+            return;
+          }
+        }
       }
-    }
-    return new Sequence(f.call(this));
+    });
   }
 
   /**
@@ -518,45 +534,46 @@ export default class Sequence<T> {
    * @returns A generator that yields each permutation.
    */
   permutations(r: number): Sequence<T[]> {
-    function* f(this: Sequence<T>): Generator<T[], void, undefined> {
-      const pool = this.toArraySequence();
-      const length = pool.count();
+    const pool = this.toArraySequence();
+    return new Sequence({
+      * [Symbol.iterator]() {
+        const length = pool.count();
 
-      if (r > length || r <= 0 || length === 0) {
-        return;
-      }
-
-      const indices = [...Sequence.range(length)];
-      const cycles = [...Sequence.range(length, length - r, -1)];
-
-      yield [...pool.pick(indices.slice(0, r))];
-
-      while (true) {
-        let i = r;
-
-        while (i--) {
-          --cycles[i];
-
-          if (cycles[i] === 0) {
-            // Could be costly
-            indices.push(indices.splice(i, 1)[0]);
-
-            cycles[i] = length - i;
-          } else {
-            const j = cycles[i];
-            [indices[i], indices[length - j]]
-              = [indices[length - j], indices[i]];
-            yield [...pool.pick(indices.slice(0, r))];
-            break;
-          }
-        }
-
-        if (i === -1) {
+        if (r > length || r <= 0 || length === 0) {
           return;
         }
+
+        const indices = [...Sequence.range(length)];
+        const cycles = [...Sequence.range(length, length - r, -1)];
+
+        yield [...pool.pick(indices.slice(0, r))];
+
+        while (true) {
+          let i = r;
+
+          while (i--) {
+            --cycles[i];
+
+            if (cycles[i] === 0) {
+              // Could be costly
+              indices.push(indices.splice(i, 1)[0]);
+
+              cycles[i] = length - i;
+            } else {
+              const j = cycles[i];
+              [indices[i], indices[length - j]]
+                = [indices[length - j], indices[i]];
+              yield [...pool.pick(indices.slice(0, r))];
+              break;
+            }
+          }
+
+          if (i === -1) {
+            return;
+          }
+        }
       }
-    }
-    return new Sequence(f.call(this));
+    });
   }
 
   /**
@@ -566,28 +583,30 @@ export default class Sequence<T> {
    * @returns A generator that yields each value from the iterable, cycled.
    */
   ncycle(n: number): Sequence<T> {
-    function* f(this: Sequence<T>): Generator<T, void, undefined> {
-      if (n <= 0) {
-        // Nothing
-      } else if (n === 1) {
-        yield* this.it;
-      } else {
-        const buffer = [];
-        for (const item of this.it) {
-          yield item;
-          buffer.push(item);
-        }
+    const that = this;
+    return new Sequence({
+      * [Symbol.iterator]() {
+        if (n <= 0) {
+          // Nothing
+        } else if (n === 1) {
+          yield* that.it;
+        } else {
+          const buffer = [];
+          for (const item of that.it) {
+            yield item;
+            buffer.push(item);
+          }
 
-        if (buffer.length === 0) {
-          return;
-        }
+          if (buffer.length === 0) {
+            return;
+          }
 
-        while (--n > 0) {
-          yield* buffer;
+          while (--n > 0) {
+            yield* buffer;
+          }
         }
       }
-    }
-    return new Sequence(f.call(this));
+    });
   }
 
   /**
@@ -599,13 +618,15 @@ export default class Sequence<T> {
    * @returns A generator that yields the mapped values
    */
   map<U>(callable: mapCallback<T, U>, thisArg?: any): Sequence<U> {
-    function* f(this: Sequence<T>): Generator<U, void, undefined> {
-      let c = 0;
-      for (const item of this.it) {
-        yield callable.call(thisArg, item, c++, this);
+    const that = this;
+    return new Sequence({
+      * [Symbol.iterator]() {
+        let c = 0;
+        for (const item of that.it) {
+          yield callable.call(thisArg, item, c++, that);
+        }
       }
-    }
-    return new Sequence<U>(f.call(this));
+    });
   }
 
   /**
@@ -621,7 +642,6 @@ export default class Sequence<T> {
    * @throws {@link TypeError} Iterable is empty and there is no initializer
    */
   reduce<A>(callback: reduceCallback<T, A>, initializer?: A): A {
-    // eslint-disable-next-line @typescript-eslint/no-this-alias
     let iterable: Sequence<T> = this;
     if (initializer === undefined) {
       // No initializer?  Use the first item in the iterable
@@ -650,21 +670,23 @@ export default class Sequence<T> {
    * @returns Deduplicated sequence
    */
   dedup(fn: equalityCallback<T> = eqeqeq): Sequence<T> {
-    function* f(this: Sequence<T>) {
-      let first = true;
-      let last;
-      for (const i of this.it) {
-        if (first) {
-          first = false;
-          yield i;
-          last = i;
-        } else if (!fn(i, last as T)) {
-          yield i;
-          last = i;
+    const that = this;
+    return new Sequence({
+      * [Symbol.iterator]() {
+        let first = true;
+        let last;
+        for (const i of that.it) {
+          if (first) {
+            first = false;
+            yield i;
+            last = i;
+          } else if (!fn(i, last as T)) {
+            yield i;
+            last = i;
+          }
         }
       }
-    }
-    return new Sequence(f.call(this));
+    });
   }
 
   /**
@@ -687,5 +709,102 @@ export default class Sequence<T> {
       res += String(i);
     }
     return res;
+  }
+
+  /**
+   * Shallow-copy a portion of the sequence into a new sequence, from index
+   * start (inclusive) to end (exclusive).
+   *
+   * @param start - Starting index.  If less than 0, count backward from the
+   *   end, which causes buffering.
+   * @param end - End index, defaults to the length of the sequence.  If less
+   *   than 0 counts backwards from the end of the sequence.
+   * @returns A new sequence with the selected items.
+   */
+  slice(start = 0, end?: number): Sequence<T> {
+    const that = this;
+    return new Sequence({
+      * [Symbol.iterator]() {
+        if (end === 0) {
+          return;
+        }
+        const it = that.it[Symbol.iterator]();
+        if (start < 0) {
+          // Circular buffer up n entries, have to read all the way to the end
+          // to ensure we've got them all.
+          const n = -start;
+          const buffer = new Array(n);
+          let cur = 0;
+          let len = 0;
+          for (const value of that.it) {
+            buffer[cur] = value;
+            cur = (cur + 1) % n;
+            len++;
+          }
+          if (end === undefined) {
+            if (n <= len) {
+              yield* buffer.slice(cur);
+            }
+            yield* buffer.slice(0, cur);
+          } else {
+            let left = 0;
+            if (end > 0) {
+              // Yield n - (len - end) items
+              if (end > len) {
+                end = len;
+              }
+              left = n - (len - end);
+            } else {
+              if (end < -len) {
+                end = -len;
+              }
+              left = n + end;
+            }
+            if (left > 0) {
+              const back = buffer.slice(cur, cur + left);
+              left -= back.length;
+              yield* back;
+              if (left > 0) {
+                yield* buffer.slice(0, left);
+              }
+            }
+          }
+        } else {
+          // Discard the first start items
+          for (let i = 0; i < start; i++) {
+            if (it.next().done) {
+              break;
+            }
+          }
+
+          const stop = (end === undefined) ? Infinity : end;
+          if (stop < 0) {
+            // Circular buffer -end items, then discard the rest
+            const buffer = new Array(-stop);
+            let cur = 0;
+            let left = -stop;
+            let i = it.next();
+            while (!i.done) {
+              if (left > 0) {
+                left--;
+              } else {
+                yield buffer[cur];
+              }
+              buffer[cur] = i.value;
+              cur = (cur + 1) % -stop;
+              i = it.next();
+            }
+          } else {
+            let i = it.next();
+            let count = start;
+            while (!i.done && (count < stop)) {
+              yield i.value;
+              i = it.next();
+              count++;
+            }
+          }
+        }
+      }
+    });
   }
 }
