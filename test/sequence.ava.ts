@@ -169,3 +169,29 @@ test("slice", t => {
   t.deepEqual([...s.slice(-4, 9)], [6, 7, 8]);
   t.deepEqual([...s.slice(-4, 12)], [6, 7, 8, 9]);
 });
+
+test("chunks", t => {
+  const s = Sequence.range(10);
+  t.throws<RangeError>(() => s.chunks(0));
+  t.throws<RangeError>(() => s.chunks(0.5));
+  t.throws<RangeError>(() => s.chunks(-1));
+  t.deepEqual([...s.chunks(5)], [[0, 1, 2, 3, 4], [5, 6, 7, 8, 9]]);
+  t.deepEqual([...s.chunks(3)], [[0, 1, 2], [3, 4, 5], [6, 7, 8], [9]]);
+  t.deepEqual([...s.chunks(3.5)], [[0, 1, 2], [3, 4, 5], [6, 7, 8], [9]]);
+});
+
+test("flat", t => {
+  const s = new Sequence([1, [2, 3], [4, [5, 6]]]);
+  t.deepEqual([...s.flat()], [1, 2, 3, 4, [5, 6]]);
+  t.deepEqual([...s.flat(Infinity)], [1, 2, 3, 4, 5, 6]);
+});
+
+test("flatMap", t => {
+  const s = new Sequence([1, [2, 3]]);
+  t.deepEqual([...s.flatMap(x => Array.isArray(x) ? x : -x)], [-1, 2, 3]);
+});
+
+test("at", t => {
+  t.is(Sequence.range(Infinity).at(4), 4);
+  t.is(Sequence.range(4).at(5), undefined);
+});

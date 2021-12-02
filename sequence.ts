@@ -14,6 +14,9 @@ type someCallback<T>
  */
 type mapCallback<T, U> = (item: T, index: number, sequence: Sequence<T>) => U;
 
+type flatMapCallback<T, U>
+  = (item: T, index: number, sequence: Sequence<T>) => U | Iterable<U>;
+
 /**
   * @param item - The item of the iterator to filter.
   * @param index - The index of the item in the iterator.
@@ -70,8 +73,11 @@ export default class Sequence<T> {
    * @param g - The thing to check.
    * @returns True if `g` looks like an iterable.
    */
-  static isIterable(g: any): boolean {
-    return g && (typeof g === "object") && (typeof g[Symbol.iterator] === "function");
+  static isIterable<T>(g: any): g is Iterable<T> {
+    return g
+      && (typeof g === "object")
+      && (typeof g[Symbol.iterator] === "function")
+      && (g as Iterable<T> !== null);
   }
 
   /**
@@ -806,5 +812,112 @@ export default class Sequence<T> {
         }
       }
     });
+  }
+
+  /**
+   * Generate chunks of n items throughout the sequence.  If the sequence
+   * length is not divisible by n, the last chunk will be of length greater
+   * than zero but less than n.
+   *
+   * @param n - Size of each chunk
+   * @returns Sequence of arrays of items
+   */
+  chunks(n: number): Sequence<T[]> {
+    n |= 0;
+    if (n < 1) {
+      throw new RangeError("n must be greater than one");
+    }
+    const that = this;
+    return new Sequence({
+      * [Symbol.iterator]() {
+        let res = new Array(n);
+        let count = 0;
+        for (const i of that.it) {
+          res[count] = i;
+          if (count === n - 1) {
+            yield res;
+            res = new Array(n);
+            count = 0;
+          } else {
+            count++;
+          }
+        }
+        // Anything left?
+        if (count > 0) {
+          res.splice(count);
+          yield res;
+        }
+      }
+    });
+  }
+
+  /**
+   * Flatten the Sequence by up to depth times.  For this to make sense,
+   * T must be at least sometimes-iterable (e.g. number|number[]).
+   *
+   * @param depth - Maximum depth to flatten.  Infinity is a valid option.
+   * @returns A flattened sequence.
+   */
+  flat(depth = 1): Sequence<T> {
+    function* flat(s: Iterable<T>, d: number): Generator<T, void, undefined> {
+      for (const i of s) {
+        if ((d < depth) && Sequence.isIterable<T>(i)) {
+          yield* flat(i, d + 1);
+        } else {
+          yield i;
+        }
+      }
+    }
+
+    const that = this;
+    return new Sequence({
+      * [Symbol.iterator]() {
+        yield* flat(that.it, 0);
+      }
+    });
+  }
+
+  /**
+   * Perform a map operation on the sequence, then flatten once.
+   *
+   * @param fn - Map from T to U or Iterable[U]
+   * @param thisArg - "this" in the mapping function
+   * @returns - A new sequence, with the mapped and flattend values.
+   */
+  flatMap<U>(fn: flatMapCallback<T, U>, thisArg?: any): Sequence<U> {
+    // Map, then flatten.
+    // Always pillage before you burn.
+    const that = this;
+    return new Sequence({
+      * [Symbol.iterator](): Generator<U, void, undefined> {
+        let c = 0;
+        for (const item of that.it) {
+          // Flatten to depth 1
+          const res = fn.call(thisArg, item, c++, that);
+          if (Sequence.isIterable(res)) {
+            yield* res;
+          } else {
+            yield res;
+          }
+        }
+      }
+    });
+  }
+
+  /**
+   * Return the Nth item of the sequence.
+   *
+   * @param n - Zero-based
+   * @returns The Nth item, or undefined if sequence isn't long enough
+   */
+  at(n: number): T | undefined {
+    let count = 0;
+    for (const i of this.it) {
+      if (count === n) {
+        return i;
+      }
+      count++;
+    }
+    return undefined;
   }
 }
