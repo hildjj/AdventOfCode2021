@@ -33,6 +33,11 @@ type reduceCallback<T, A>
   = (accumulator: A, item: T, index: number, sequence: Sequence<T>) => A;
 
 /**
+ * Are the two items equal?
+ */
+type equalityCallback<T> = (a: T, b: T) => boolean;
+
+/**
  * Lazy sequences, based on generators and iterators.
  *
  * The more interesting functions were lifted from lifted from
@@ -160,6 +165,32 @@ export default class Sequence<T> {
   }
 
   /**
+   * Concatenate several sequences together.
+   *
+   * @param seqs - The input sequences
+   * @returns A sequence with all of the items of each sequence in order.
+   */
+  static concat<T>(...seqs: Sequence<T>[]): Sequence<T> {
+    function* f(): Generator<T, void, undefined> {
+      for (const s of seqs) {
+        yield* s;
+      }
+    }
+    return new Sequence(f());
+  }
+
+  /**
+   * Concatenate this sequence follwed by all of the input sequences.
+   *
+   * @param seqs - The other sequences
+   * @returns A sequence with all of the items of each sequence in order,
+   *   starting with this sequence.
+   */
+  concat(...seqs: Sequence<T>[]): Sequence<T> {
+    return Sequence.concat(this, ...seqs);
+  }
+
+  /**
    * If the Sequence isn't already an array, turn it into one.
    * Could be infinitely-costly for an infinite sequence.
    *
@@ -246,6 +277,24 @@ export default class Sequence<T> {
   }
 
   /**
+   * Return the first item of the sequence for which the function returns
+   * true.
+   *
+   * @param fn - Function to call on each argument.
+   * @param thisArg - Object to use as "this" in the callback function.
+   * @returns - The first match, or undefined.
+   */
+  find(fn: filterCallback<T>, thisArg?: any): T | undefined {
+    let count = 0;
+    for (const val of this.it) {
+      if (fn.call(thisArg, val, count++, this)) {
+        return val;
+      }
+    }
+    return undefined;
+  }
+
+  /**
    * Discard the first size elements of the sequence, and return an Sequence
    * with everything else.
    *
@@ -253,16 +302,17 @@ export default class Sequence<T> {
    * @returns A new Sequence
    */
   discard(size: number): Sequence<T> {
-    function* f(this: Sequence<T>): Generator<T, void, undefined> {
-      const it = this.it[Symbol.iterator]();
-      for (let i = 0; i < size; i++) {
-        it.next();
+    // eslint-disable-next-line @typescript-eslint/no-this-alias
+    const that = this;
+    return new Sequence({
+      [Symbol.iterator]() {
+        const it = that.it[Symbol.iterator]();
+        for (let i = 0; i < size; i++) {
+          it.next();
+        }
+        return it;
       }
-      yield* {
-        [Symbol.iterator]: () => it
-      };
-    }
-    return new Sequence(f.call(this));
+    });
   }
 
   /**

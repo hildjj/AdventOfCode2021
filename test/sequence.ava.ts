@@ -129,3 +129,22 @@ test("count", t => {
   t.is(new Sequence(new Map([])).count(), 0);
   t.is(new Sequence(new Map([[1, 2]])).count(), 1);
 });
+
+test("concat", t => {
+  t.deepEqual(
+    Sequence.range(5).concat(Sequence.range(2)).toArray(),
+    [0, 1, 2, 3, 4, 0, 1]
+  );
+  t.deepEqual(
+    Sequence.concat(Sequence.range(2), Sequence.range(3)).toArray(),
+    [0, 1, 0, 1, 2]
+  );
+});
+
+test("dedup", t => {
+  t.deepEqual(new Sequence([1, 2, 2, 3, 2]).dedup().toArray(), [1, 2, 3, 2]);
+});
+
+test("find", t => {
+  t.is(Sequence.range(5).find(i => i % 2 === 1), 1);
+});
