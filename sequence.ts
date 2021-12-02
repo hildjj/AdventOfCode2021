@@ -34,8 +34,15 @@ type reduceCallback<T, A>
 
 /**
  * Are the two items equal?
+ *
+ * @param a - Current item
+ * @param b - Previous item
+ * @returns True if equal
  */
 type equalityCallback<T> = (a: T, b: T) => boolean;
+function eqeqeq<T>(a: T, b: T): boolean {
+  return a === b;
+}
 
 /**
  * Lazy sequences, based on generators and iterators.
@@ -633,5 +640,52 @@ export default class Sequence<T> {
     }
 
     return initializer;
+  }
+
+  /**
+   * Removes all but the first of consecutive elements in the vector
+   * satisfying a given equality relation.
+   *
+   * @param fn - The equality relation, defaults to ===.
+   * @returns Deduplicated sequence
+   */
+  dedup(fn: equalityCallback<T> = eqeqeq): Sequence<T> {
+    function* f(this: Sequence<T>) {
+      let first = true;
+      let last;
+      for (const i of this.it) {
+        if (first) {
+          first = false;
+          yield i;
+          last = i;
+        } else if (!fn(i, last as T)) {
+          yield i;
+          last = i;
+        }
+      }
+    }
+    return new Sequence(f.call(this));
+  }
+
+  /**
+   * Create a string from the sequence, interspersing each element with a
+   * separator.  Note that this can be infinitely-expensive for inifinite
+   * sequences.
+   *
+   * @param separator - Separate each item.  Use "" if you don't want one.
+   * @returns The joined string
+   */
+  join(separator = ","): string {
+    let res = "";
+    let first = true;
+    for (const i of this.it) {
+      if (first) {
+        first = false;
+      } else {
+        res += separator;
+      }
+      res += String(i);
+    }
+    return res;
   }
 }

@@ -141,10 +141,14 @@ test("concat", t => {
   );
 });
 
-test("dedup", t => {
-  t.deepEqual(new Sequence([1, 2, 2, 3, 2]).dedup().toArray(), [1, 2, 3, 2]);
-});
-
 test("find", t => {
   t.is(Sequence.range(5).find(i => i % 2 === 1), 1);
 });
+
+test("dedup", t => {
+  t.deepEqual(new Sequence([1, 2, 2, 3, 2]).dedup().toArray(), [1, 2, 3, 2]);
+  t.deepEqual(new Sequence("ABbCb").dedup(
+    (a, b) => a.toUpperCase() === ((typeof b === "symbol") ? b : b.toUpperCase())
+  ).join(""), "ABCb");
+});
+
