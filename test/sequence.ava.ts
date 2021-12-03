@@ -143,6 +143,12 @@ test("concat", t => {
 
 test("find", t => {
   t.is(Sequence.range(5).find(i => i % 2 === 1), 1);
+  t.is(Sequence.range(5).find(i => i === 10), undefined);
+});
+
+test("findIndex", t => {
+  t.is(new Sequence("aBc").findIndex(i => i.toUpperCase() === i), 1);
+  t.is(Sequence.range(5).findIndex(i => i === 10), -1);
 });
 
 test("dedup", t => {
@@ -195,3 +201,14 @@ test("at", t => {
   t.is(Sequence.range(Infinity).at(4), 4);
   t.is(Sequence.range(4).at(5), undefined);
 });
+
+test("entries", t => {
+  const s = new Sequence("abc");
+  t.deepEqual([...s.entries()], [[0, "a"], [1, "b"], [2, "c"]]);
+});
+
+test("every", t => {
+  t.is(new Sequence("abc").every(i => i === i.toLowerCase()), true);
+  t.is(new Sequence("aBc").every(i => i === i.toLowerCase()), false);
+});
+

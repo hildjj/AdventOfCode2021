@@ -1,11 +1,4 @@
 /* eslint-disable @typescript-eslint/no-this-alias */
-/**
- * @param item - The item of the iterator to check.
- * @param index - The index of the item in the iterator.
- * @returns Does this item match?
- */
-type someCallback<T>
-  = (item: T, index: number, sequence: Sequence<T>) => boolean;
 
 /**
  * @param item - The item of the iterator to map
@@ -20,7 +13,7 @@ type flatMapCallback<T, U>
 /**
   * @param item - The item of the iterator to filter.
   * @param index - The index of the item in the iterator.
-  * @param iterable - The iterable being filtered.
+  * @param sequence - The iterable being filtered.
   * @returns If true, this item is retained.
   */
 type filterCallback<T> =
@@ -76,32 +69,60 @@ export default class Sequence<T> {
   static isIterable<T>(g: any): g is Iterable<T> {
     return g
       && (typeof g === "object")
-      && (typeof g[Symbol.iterator] === "function")
-      && (g as Iterable<T> !== null);
+      && (typeof (g as Iterable<T>)[Symbol.iterator] === "function");
   }
 
   /**
-   * Like Python's range(), generate a series of numbers.
+   * Is this thing a sequence?
    *
-   * @param start - The starting point
-   * @param stop - The ending point, which isn't reached
-   * @param step - How much to add each time, may be negative
-   * @returns A generator that yields each number in the range
+   * @param s - Something that might be a Sequence
+   * @returns True if it's a Sequence
    */
-  static range(start: number, stop?: number, step = 1): Sequence<number> {
+  static isSequence<T>(s: any): s is Sequence<T> {
+    return s
+      && (typeof s === "object")
+      && s instanceof Sequence;
+  }
+
+  /**
+   * Are two sequences equal?  They are if all of their members are `===`.
+   *
+   * @param a - First Sequence.
+   * @param b - Second Sequence.
+   * @returns True if sequences are equal.
+   */
+  static equal<U>(a: Sequence<U>, b: Sequence<U>): boolean {
+    if (a === b) {
+      return true;
+    }
+
+    const it_a = a[Symbol.iterator]();
+    const it_b = b[Symbol.iterator]();
+
+    let ret = true;
+    while (ret) {
+      const n_a = it_a.next();
+      const n_b = it_b.next();
+      ret = (n_a.done === n_b.done) && (n_a.value === n_b.value);
+      if (n_a.done || n_b.done) {
+        break;
+      }
+    }
+    return ret;
+  }
+
+  /**
+   * Yield the same value for ever.  And ever.
+   * Value of VALUES! And Loop of LOOPS!
+   *
+   * @param val - The value to yield.
+   * @returns A Sequence yielding val forever.
+   */
+  static forEver<U>(val: U): Sequence<U> {
     return new Sequence({
       * [Symbol.iterator]() {
-        if (stop === undefined) {
-          [start, stop] = [0, start];
-        }
-        if (step < 0) {
-          for (let i = start; i > stop; i += step) {
-            yield i;
-          }
-        } else {
-          for (let i = start; i < stop; i += step) {
-            yield i;
-          }
+        while (true) {
+          yield val;
         }
       }
     });
@@ -135,47 +156,30 @@ export default class Sequence<T> {
   }
 
   /**
-   * Yield the same value for ever.  And ever.
-   * Value of VALUES! And Loop of LOOPS!
+   * Like Python's range(), generate a series of numbers.
    *
-   * @param val - The value to yield.
-   * @returns A Sequence yielding val forever.
+   * @param start - The starting point
+   * @param stop - The ending point, which isn't reached
+   * @param step - How much to add each time, may be negative
+   * @returns A generator that yields each number in the range
    */
-  static forEver<U>(val: U): Sequence<U> {
+  static range(start: number, stop?: number, step = 1): Sequence<number> {
     return new Sequence({
       * [Symbol.iterator]() {
-        while (true) {
-          yield val;
+        if (stop === undefined) {
+          [start, stop] = [0, start];
+        }
+        if (step < 0) {
+          for (let i = start; i > stop; i += step) {
+            yield i;
+          }
+        } else {
+          for (let i = start; i < stop; i += step) {
+            yield i;
+          }
         }
       }
     });
-  }
-
-  /**
-   * Are two sequences equal?  They are if all of their members are `===`.
-   *
-   * @param a - First Sequence.
-   * @param b - Second Sequence.
-   * @returns True if sequences are equal.
-   */
-  static equal<U>(a: Sequence<U>, b: Sequence<U>): boolean {
-    if (a === b) {
-      return true;
-    }
-
-    const it_a = a[Symbol.iterator]();
-    const it_b = b[Symbol.iterator]();
-
-    let ret = true;
-    while (ret) {
-      const n_a = it_a.next();
-      const n_b = it_b.next();
-      ret = (n_a.done === n_b.done) && (n_a.value === n_b.value);
-      if (n_a.done || n_b.done) {
-        break;
-      }
-    }
-    return ret;
   }
 
   /**
@@ -244,7 +248,7 @@ export default class Sequence<T> {
    * @param thisArg - What is `this` in the function `f`?
    * @returns The predicate matched one of the items in the iterator.
    */
-  some(f: someCallback<T>, thisArg?: any): boolean {
+  some(f: filterCallback<T>, thisArg?: any): boolean {
     let count = 0;
     for (const i of this.it) {
       if (f.call(thisArg, i, count++, this)) {
@@ -301,7 +305,7 @@ export default class Sequence<T> {
    *
    * @param fn - Function to call on each argument.
    * @param thisArg - Object to use as "this" in the callback function.
-   * @returns - The first match, or undefined.
+   * @returns The first match, or undefined.
    */
   find(fn: filterCallback<T>, thisArg?: any): T | undefined {
     let count = 0;
@@ -311,6 +315,25 @@ export default class Sequence<T> {
       }
     }
     return undefined;
+  }
+
+  /**
+   * Find the index into the sequence for the first item that matches the
+   * predicate.
+   *
+   * @param fn - Predicate to call on each argument.
+   * @param thisArg - Object to use as "this" in the callback function.
+   * @returns The index of the first match, or -1 if not found.
+   */
+  findIndex(fn: filterCallback<T>, thisArg?: any): number {
+    let count = 0;
+    for (const val of this.it) {
+      if (fn.call(thisArg, val, count, this)) {
+        return count;
+      }
+      count++;
+    }
+    return -1;
   }
 
   /**
@@ -919,5 +942,39 @@ export default class Sequence<T> {
       count++;
     }
     return undefined;
+  }
+
+  /**
+   * Creates a new sequence with the key/value pairs of the original sequence.
+   *
+   * @returns Sequence of [number, item] tuples
+   */
+  entries(): Sequence<[number, T]> {
+    const that = this;
+    return new Sequence({
+      * [Symbol.iterator]() {
+        let count = 0;
+        for (const i of that.it) {
+          yield [count++, i];
+        }
+      }
+    });
+  }
+
+  /**
+   * Does every item in the sequence fulfill some predicate?
+   *
+   * @param fn - The predictate
+   * @param thisArg - Optional "this" for the predicate
+   * @returns True if the predicate matches for all items
+   */
+  every(fn: filterCallback<T>, thisArg?: any): boolean {
+    let count = 0;
+    for (const i of this.it) {
+      if (!fn.call(thisArg, i, count++, this)) {
+        return false;
+      }
+    }
+    return true;
   }
 }
