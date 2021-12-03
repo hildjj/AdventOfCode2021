@@ -48,6 +48,17 @@ test("range", t => {
   t.deepEqual([...Sequence.range(4, 0, -1)], [4, 3, 2, 1]);
 });
 
+test("zip", t => {
+  t.deepEqual(
+    [...Sequence.zip(Sequence.range(3), Sequence.range(4, 7))],
+    [[0, 4], [1, 5], [2, 6]]
+  );
+  t.deepEqual(
+    [...Sequence.zip(Sequence.range(3), new Sequence([]))],
+    []
+  );
+});
+
 test("at", t => {
   t.is(Sequence.range(Infinity).at(4), 4);
   t.is(Sequence.range(4).at(5), undefined);

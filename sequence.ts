@@ -142,6 +142,24 @@ export default class Sequence<T> {
   }
 
   /**
+   * 1, 1, 2, 6...
+   *
+   * @returns Factorial sequence
+   */
+  static factorial(): Sequence<number> {
+    return new Sequence<number>({
+      * [Symbol.iterator](): Generator<number, void, undefined> {
+        let count = 1;
+        let total = 1;
+        while (true) {
+          yield total;
+          total *= count++;
+        }
+      }
+    });
+  }
+
+  /**
    * Yield the same value for ever.  And ever.
    * Value of VALUES! And Loop of LOOPS!
    *
@@ -212,7 +230,29 @@ export default class Sequence<T> {
     });
   }
 
-  //#region Statics
+  /**
+   * Tie together multiple sequences into a sequence of an array of the first
+   * item from each sequence, the second item from each sequence, etc.
+   *
+   * @param seqs - The sequences to zip together
+   * @returns [s[0][0], s[1][0]], [s[0][1], s[1][1]], ...
+   */
+  static zip<T>(...seqs: Sequence<T>[]): Sequence<T[]> {
+    return new Sequence({
+      * [Symbol.iterator]() {
+        const its = seqs.map(s => s.it[Symbol.iterator]());
+        while (true) {
+          const nexts = its.map(i => i.next());
+          if (nexts.some(n => n.done)) {
+            return;
+          }
+          yield nexts.map(n => n.value);
+        }
+      }
+    });
+  }
+
+  //#endregion Statics
 
   //#region Methods
 
@@ -647,6 +687,11 @@ export default class Sequence<T> {
     });
   }
 
+  /**
+   * Go all the way to the end of the sequence, and return the last item.
+   *
+   * @returns The last item of the sequence
+   */
   last(): T | undefined {
     let prev = undefined;
     for (const i of this.it) {
