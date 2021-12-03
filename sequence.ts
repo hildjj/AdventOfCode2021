@@ -75,7 +75,7 @@ export default class Sequence<T> {
    * @returns True if `g` looks like an iterable.
    */
   static isIterable<T>(g: any): g is Iterable<T> {
-    return g
+    return Boolean(g)
       && (typeof g === "object")
       && (typeof (g as Iterable<T>)[Symbol.iterator] === "function");
   }
@@ -87,9 +87,9 @@ export default class Sequence<T> {
    * @returns True if it's a Sequence
    */
   static isSequence<T>(s: any): s is Sequence<T> {
-    return s
+    return Boolean(s)
       && (typeof s === "object")
-      && s instanceof Sequence;
+      && (s instanceof Sequence);
   }
   //#endregion Type Checking
 
@@ -564,6 +564,35 @@ export default class Sequence<T> {
       res += String(i);
     }
     return res;
+  }
+
+  groupBy(fn: equalityCallback<T>): Sequence<T[]> {
+    const that = this;
+    return new Sequence({
+      * [Symbol.iterator]() {
+        let res: T[] = [];
+        let first = true;
+        let prev;
+        for (const i of that) {
+          if (first) {
+            res.push(i);
+            first = false;
+            prev = i;
+          } else {
+            if (fn(prev as T, i)) {
+              res.push(i);
+            } else {
+              yield res;
+              res = [i];
+            }
+            prev = i;
+          }
+        }
+        if (res.length > 0) {
+          yield res;
+        }
+      }
+    });
   }
 
   /**

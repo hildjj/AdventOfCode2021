@@ -27,7 +27,6 @@ function part2(inp: string[][]): number {
     inp1 = inp1.filter(v => v[bit] === crit);
     bit++;
   }
-  console.log(inp1[0].join(""));
   const x = parseInt(inp1[0].join(""), 2);
 
   bit = 0;
@@ -36,7 +35,6 @@ function part2(inp: string[][]): number {
     inp2 = inp2.filter(v => v[bit] === crit);
     bit++;
   }
-  console.log(inp2[0].join(""));
   const y = parseInt(inp2[0].join(""), 2);
   return x * y;
 }
