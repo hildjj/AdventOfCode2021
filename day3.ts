@@ -1,10 +1,9 @@
 #!/usr/bin/env node --loader ts-node/esm --experimental-specifier-resolution=node
-import Sequence from "./sequence.js";
 import Utils from "./utils.js"; // Really .ts
 
 function part1(inp: string[][]): number {
-  const counts = inp[0].map(_ => 0);
-  const ones = parseInt(inp[0].map<string>(_ => "1").join(""), 2);
+  const counts = inp[0].map(() => 0);
+  const ones = parseInt(inp[0].map<string>(() => "1").join(""), 2);
   for (const p of inp) {
     for (const [i, x] of p.entries()) {
       counts[i] += (x === "1") ? 1 : 0;
@@ -24,6 +23,7 @@ function part2(inp: string[][]): number {
   let bit = 0;
   while (inp1.length > 1) {
     const crit = (count(inp1, bit) >= inp1.length / 2) ? "1" : "0";
+    // eslint-disable-next-line @typescript-eslint/no-loop-func
     inp1 = inp1.filter(v => v[bit] === crit);
     bit++;
   }
@@ -32,6 +32,7 @@ function part2(inp: string[][]): number {
   bit = 0;
   while (inp2.length > 1) {
     const crit = (count(inp2, bit) < inp2.length / 2) ? "1" : "0";
+    // eslint-disable-next-line @typescript-eslint/no-loop-func
     inp2 = inp2.filter(v => v[bit] === crit);
     bit++;
   }
