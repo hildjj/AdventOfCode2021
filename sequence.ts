@@ -11,6 +11,9 @@ type equalityCallback<T> = (a: T, b: T) => boolean;
 function eqeqeq<T>(a: T, b: T): boolean {
   return a === b;
 }
+function ordered<T>(a: T, b: T): boolean {
+  return a <= b;
+}
 
 /**
  * @param item - The item of the iterator to map
@@ -545,6 +548,22 @@ export default class Sequence<T> {
   }
 
   /**
+   * Is the sequence sorted?  You may pass in a predicate that returns
+   * true if its two parameters are in order.
+   *
+   * @param fn - Sorting predicate
+   * @returns True if the entire sequence is sorted.
+   */
+  isSorted(fn: equalityCallback<T> = ordered): boolean {
+    for (const [a, b] of this.windows(2)) {
+      if (!fn(a, b)) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  /**
    * Create a string from the sequence, interspersing each element with a
    * separator.  Note that this can be infinitely-expensive for inifinite
    * sequences.
@@ -566,10 +585,19 @@ export default class Sequence<T> {
     return res;
   }
 
+  /**
+   * Create a sequence of arrays that are grouped by the given function.
+   * As long as the function returns true, the elements will be grouped
+   * together.
+   *
+   * @param fn - Grouping predicate, called with [0], [1] then [1], [2], etc.
+   * @returns
+   */
   groupBy(fn: equalityCallback<T>): Sequence<T[]> {
     const that = this;
     return new Sequence({
       * [Symbol.iterator]() {
+        // Seems like .windows(2) might work.
         let res: T[] = [];
         let first = true;
         let prev;

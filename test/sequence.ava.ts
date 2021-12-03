@@ -151,6 +151,12 @@ test("groupBy", t => {
   );
 });
 
+test("isSorted", t => {
+  t.true(Sequence.range(4).isSorted());
+  t.true(new Sequence([1, 1, 2, 3]).isSorted());
+  t.false(new Sequence(["aaa", "a"]).isSorted((a, b) => a.length <= b.length));
+});
+
 test("ncycle", t => {
   t.deepEqual([...new Sequence("AB").ncycle(0)], []);
   t.deepEqual([...new Sequence("AB").ncycle(1)], ["A", "B"]);
