@@ -20,6 +20,16 @@ module.exports = {
       "ignorePattern": "c8",
       "ignoreConsecutiveComments": true,
     }],
+    "spaced-comment": [
+      "error",
+      "always",
+      {
+        line: {
+          markers: ["/", "#region", "#endregion"],
+        },
+        block: { markers: ["*"], balanced: true },
+      },
+    ],
     "sort-imports": "error",
     // [Possible Errors](https://eslint.org/docs/rules/#possible-errors)
     "node/no-unsupported-features/es-syntax": [

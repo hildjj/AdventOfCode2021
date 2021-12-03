@@ -34,5 +34,13 @@ jobs:
       #   run: npm run lint
       - name: Static analysis - check types
         run: npm run ts
-      - name: Test
-        run: npm run test
+      - name: Text with coverage
+        run: npm run coverage
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v2
+        with:
+          files: coverage/lcov.info
+          env_vars: OS,NODE
+          name: codecov-umbrella
+          fail_ci_if_error: true
+          verbose: true
