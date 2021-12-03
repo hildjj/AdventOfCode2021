@@ -129,6 +129,11 @@ test("filter", t => {
   );
 });
 
+test("first", t => {
+  t.is(Sequence.range(Infinity).first(), 0);
+  t.is(new Sequence([]).first(), undefined);
+});
+
 test("flat", t => {
   const s = new Sequence([1, [2, 3], [4, [5, 6]]]);
   t.deepEqual([...s.flat()], [1, 2, 3, 4, [5, 6]]);
@@ -151,10 +156,20 @@ test("groupBy", t => {
   );
 });
 
+test("isEmpty", t => {
+  t.true(new Sequence([]).isEmpty());
+  t.false(new Sequence([1]).isEmpty());
+});
+
 test("isSorted", t => {
   t.true(Sequence.range(4).isSorted());
   t.true(new Sequence([1, 1, 2, 3]).isSorted());
   t.false(new Sequence(["aaa", "a"]).isSorted((a, b) => a.length <= b.length));
+});
+
+test("last", t => {
+  t.is(new Sequence([]).last(), undefined);
+  t.is(new Sequence([1, 2, 3]).last(), 3);
 });
 
 test("ncycle", t => {
@@ -238,7 +253,7 @@ test("trunc", t => {
 
 test("windows", t => {
   t.deepEqual(
-    [...new Sequence("ABCD").windows(2).map(i => i.join(''))],
+    [...new Sequence("ABCD").windows(2).map(i => i.join(""))],
     ["AB", "BC", "CD"]
   );
 });

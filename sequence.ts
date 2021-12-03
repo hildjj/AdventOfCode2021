@@ -495,6 +495,18 @@ export default class Sequence<T> {
   }
 
   /**
+   * Get the first item of the sequence, if it isn't empty.
+   *
+   * @returns The first item, or undefined if the sequence is empty.
+   */
+  first(): T | undefined {
+    for (const i of this.it) {
+      return i;
+    }
+    return undefined;
+  }
+
+  /**
    * Flatten the Sequence by up to depth times.  For this to make sense,
    * T must be at least sometimes-iterable (e.g. number|number[]).
    *
@@ -545,6 +557,18 @@ export default class Sequence<T> {
         }
       }
     });
+  }
+
+  /**
+   * Does the sequence have at least one item?
+   *
+   * @returns True if empty
+   */
+  isEmpty(): boolean {
+    for (const _ of this.it) {
+      return false;
+    }
+    return true;
   }
 
   /**
@@ -621,6 +645,14 @@ export default class Sequence<T> {
         }
       }
     });
+  }
+
+  last(): T | undefined {
+    let prev = undefined;
+    for (const i of this.it) {
+      prev = i;
+    }
+    return prev;
   }
 
   /**
