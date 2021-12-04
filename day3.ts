@@ -1,10 +1,8 @@
 #!/usr/bin/env node --loader ts-node/esm --experimental-specifier-resolution=node
+/* eslint-disable @typescript-eslint/no-loop-func */
 import Utils from "./utils.js"; // Really .ts
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-function ident(_: number): boolean { return true; }
-
-function toInt(a: number[], pred = ident): number {
+function toInt(a: number[], pred: (n: number) => boolean): number {
   return a.reduce((t, v) => (t << 1) + (pred(v) ? 1 : 0), 0);
 }
 
@@ -17,35 +15,33 @@ function part1(inp: number[][]): number {
     }
   }
   const mid = inp.length / 2;
-  const x = toInt(counts, v => v > mid);
-  const y = x ^ (2 ** len - 1);
-  return x * y;
+  const gamma = toInt(counts, v => v > mid);
+  const epsilon = gamma ^ (2 ** len - 1);
+  return gamma * epsilon;
 }
 
 function part2(inp: number[][]): number {
-  let inp1 = [...inp];
-  let inp2 = [...inp];
   function count(np: number[][], j: number): number {
     return np.reduce((t, v) => t + (v[j] === 1 ? 1 : 0), 0);
   }
   let bit = 0;
+  let inp1 = [...inp];
   while (inp1.length > 1) {
     const crit = (count(inp1, bit) >= inp1.length / 2) ? 1 : 0;
-    // eslint-disable-next-line @typescript-eslint/no-loop-func
     inp1 = inp1.filter(v => v[bit] === crit);
     bit++;
   }
-  const x = parseInt(inp1[0].join(""), 2);
+  const ox = inp1[0].reduce((t, v) => (t << 1) + v, 0);
 
   bit = 0;
-  while (inp2.length > 1) {
-    const crit = (count(inp2, bit) < inp2.length / 2) ? 1 : 0;
-    // eslint-disable-next-line @typescript-eslint/no-loop-func
-    inp2 = inp2.filter(v => v[bit] === crit);
+  inp1 = [...inp];
+  while (inp1.length > 1) {
+    const crit = (count(inp1, bit) < inp1.length / 2) ? 1 : 0;
+    inp1 = inp1.filter(v => v[bit] === crit);
     bit++;
   }
-  const y = parseInt(inp2[0].join(""), 2);
-  return x * y;
+  const co2 = inp1[0].reduce((t, v) => (t << 1) + v, 0);
+  return ox * co2;
 }
 
 export default function main(inFile: string, trace: boolean) {

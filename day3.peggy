@@ -1,3 +1,4 @@
 lines = (@line "\n")*
 
-line = [01]+
+line = bit+
+bit = n:[01] { return parseInt(n, 2) };
