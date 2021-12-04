@@ -22,7 +22,7 @@ function part1(inp: number[][]): number {
 
 function part2(inp: number[][]): number {
   function count(np: number[][], j: number): number {
-    return np.reduce((t, v) => t + (v[j] === 1 ? 1 : 0), 0);
+    return np.reduce((t, v) => t + v[j], 0);
   }
   let bit = 0;
   let inp1 = [...inp];
