@@ -48,6 +48,15 @@ test("range", t => {
   t.deepEqual([...Sequence.range(4, 0, -1)], [4, 3, 2, 1]);
 });
 
+test("rangeI", t => {
+  const seen = [];
+  for (const x of Sequence.rangeI(4)) {
+    seen.push(x);
+  }
+  t.deepEqual(seen, [0, 1, 2, 3, 4]);
+  t.deepEqual([...Sequence.rangeI(4, 0, -1)], [4, 3, 2, 1, 0]);
+});
+
 test("zip", t => {
   t.deepEqual(
     [...Sequence.zip(Sequence.range(3), Sequence.range(4, 7))],

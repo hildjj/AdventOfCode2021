@@ -209,7 +209,7 @@ export default class Sequence<T> {
    * @param start - The starting point
    * @param stop - The ending point, which isn't reached
    * @param step - How much to add each time, may be negative
-   * @returns A generator that yields each number in the range
+   * @returns A sequence that yields each number in the range
    */
   static range(start: number, stop?: number, step = 1): Sequence<number> {
     return new Sequence({
@@ -223,6 +223,34 @@ export default class Sequence<T> {
           }
         } else {
           for (let i = start; i < stop; i += step) {
+            yield i;
+          }
+        }
+      }
+    });
+  }
+
+  /**
+   * Like Python's range(), generate a series of numbers, *inclusive*
+   * of the ending point.
+   *
+   * @param start - The starting point
+   * @param stop - The ending point, which is reached
+   * @param step - How much to add each time, may be negative
+   * @returns A sequence that yields each number in the range
+   */
+  static rangeI(start: number, stop?: number, step = 1): Sequence<number> {
+    return new Sequence({
+      * [Symbol.iterator]() {
+        if (stop === undefined) {
+          [start, stop] = [0, start];
+        }
+        if (step < 0) {
+          for (let i = start; i >= stop; i += step) {
+            yield i;
+          }
+        } else {
+          for (let i = start; i <= stop; i += step) {
             yield i;
           }
         }
