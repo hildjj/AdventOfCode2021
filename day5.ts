@@ -1,19 +1,7 @@
 #!/usr/bin/env node --loader ts-node/esm --experimental-specifier-resolution=node
+import Counter from "./counter.js";
 import Sequence from "./sequence.js";
 import Utils from "./utils.js"; // Really .ts
-
-class Counter {
-  points: { [id: string]: number } = {};
-
-  add(x: number, y: number) {
-    const coord = `${x},${y}`;
-    this.points[coord] = (this.points[coord] || 0) + 1;
-  }
-
-  total(): number {
-    return Object.values(this.points).reduce((t, v) => t + (v > 1 ? 1 : 0), 0);
-  }
-}
 
 function dir(a: number, b: number): number {
   return (b < a) ? -1 : 1;
@@ -39,7 +27,7 @@ function part1(inp: number[][]): number {
       }
     }
   }
-  return count.total();
+  return count.total(p => p > 1);
 }
 
 function part2(inp: number[][]): number {
@@ -57,7 +45,7 @@ function part2(inp: number[][]): number {
       }
     }
   }
-  return count.total();
+  return count.total(p => p > 1);
 }
 
 export default function main(inFile: string, trace: boolean) {
