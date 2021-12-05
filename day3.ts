@@ -2,45 +2,43 @@
 /* eslint-disable @typescript-eslint/no-loop-func */
 import Utils from "./utils.js"; // Really .ts
 
-function toInt(a: number[], pred: (n: number) => boolean): number {
+function toInt(
+  a: number[],
+  pred: (n: number) => boolean = v => Boolean(v)
+): number {
   return a.reduce((t, v) => (t << 1) + (pred(v) ? 1 : 0), 0);
 }
 
 function part1(inp: number[][]): number {
   const len = inp[0].length;
-  const counts = new Array(len).fill(0);
-  for (const p of inp) {
-    for (const [i, x] of p.entries()) {
-      counts[i] += x;
-    }
-  }
-  const mid = inp.length / 2;
-  const gamma = toInt(counts, v => v > mid);
+  const counts
+    = inp.reduce(
+      (t, line) => line.map((v, i) => t[i] + v),
+      new Array(len).fill(0)
+    );
+  const gamma = toInt(counts, v => v * 2 > inp.length);
   const epsilon = gamma ^ (2 ** len - 1);
   return gamma * epsilon;
 }
 
-function part2(inp: number[][]): number {
+function filter(
+  ary: number[][], pred: (num: number, len: number) => boolean
+): number {
   function count(np: number[][], j: number): number {
     return np.reduce((t, v) => t + v[j], 0);
   }
-  let bit = 0;
-  let inp1 = [...inp];
-  while (inp1.length > 1) {
-    const crit = (count(inp1, bit) >= inp1.length / 2) ? 1 : 0;
-    inp1 = inp1.filter(v => v[bit] === crit);
-    bit++;
-  }
-  const ox = inp1[0].reduce((t, v) => (t << 1) + v, 0);
 
-  bit = 0;
-  inp1 = [...inp];
-  while (inp1.length > 1) {
-    const crit = (count(inp1, bit) < inp1.length / 2) ? 1 : 0;
-    inp1 = inp1.filter(v => v[bit] === crit);
-    bit++;
+  let a = [...ary];
+  for (let bit = 0; a.length > 1; bit++) {
+    const crit = pred(count(a, bit) * 2, a.length) ? 1 : 0;
+    a = a.filter(v => v[bit] === crit);
   }
-  const co2 = inp1[0].reduce((t, v) => (t << 1) + v, 0);
+  return toInt(a[0]);
+}
+
+function part2(inp: number[][]): number {
+  const ox = filter(inp, (x, len) => x >= len);
+  const co2 = filter(inp, (x, len) => x < len);
   return ox * co2;
 }
 
