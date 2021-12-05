@@ -11,11 +11,10 @@ function toInt(
 
 function part1(inp: number[][]): number {
   const len = inp[0].length;
-  const counts
-    = inp.reduce(
-      (t, line) => line.map((v, i) => t[i] + v),
-      new Array(len).fill(0)
-    );
+  const counts = inp.reduce(
+    (t, line) => line.map((v, i) => t[i] + v),
+    new Array(len).fill(0)
+  );
   const gamma = toInt(counts, v => v * 2 > inp.length);
   const epsilon = gamma ^ (2 ** len - 1);
   return gamma * epsilon;
