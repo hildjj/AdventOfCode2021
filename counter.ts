@@ -10,10 +10,27 @@ export default class Counter<T> {
    * Add a thing.
    *
    * @param vals - The list of values that describe the thing.
+   * @returns - The current total for this thing.
    */
-  add(...vals: T[]) {
+  add(...vals: T[]): number {
     const joined = vals.toString();
-    this.points[joined] = (this.points[joined] || 0) + 1;
+    const val = (this.points[joined] || 0) + 1;
+    this.points[joined] = val;
+    return val;
+  }
+
+  /**
+   * Add something other than one.
+   *
+   * @param count - The amount to add.
+   * @param vals - The list of values that describe the thing.
+   * @returns number - The current total for this thing.
+   */
+  sum(count: number, ...vals: T[]): number {
+    const joined = vals.toString();
+    const val = (this.points[joined] || 0) + count;
+    this.points[joined] = val;
+    return val;
   }
 
   /**

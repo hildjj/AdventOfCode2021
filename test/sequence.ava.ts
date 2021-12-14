@@ -1,4 +1,6 @@
-import Sequence from "../sequence.js";
+import { NumberSequence, Sequence } from "../sequence.js";
+//
+// import crypto from "crypto";
 import test from "ava";
 
 test("isIterable", t => {
@@ -20,6 +22,10 @@ test("equal", t => {
   t.false(Sequence.equal(new Sequence([1]), new Sequence([1, 3])));
   const s = new Sequence([1, 2]);
   t.true(Sequence.equal(s, s));
+});
+
+test("factorial", t => {
+  t.deepEqual([...Sequence.factorial().take(5)], [1, 1, 2, 6, 24]);
 });
 
 test("forEver", t => {
@@ -46,6 +52,10 @@ test("range", t => {
   }
   t.deepEqual(seen, [0, 1, 2, 3]);
   t.deepEqual([...Sequence.range(4, 0, -1)], [4, 3, 2, 1]);
+  t.is(Sequence.range(0, 10, 2).count(), 5);
+  t.is(Sequence.range(3, 10, 3).count(), 3);
+  t.is(Sequence.range(10, 3, -3).count(), 3);
+  t.is(Sequence.range(10, 3).count(), 0);
 });
 
 test("rangeI", t => {
@@ -75,9 +85,9 @@ test("at", t => {
 
 test("chunks", t => {
   const s = Sequence.range(10);
-  t.throws<RangeError>(() => s.chunks(0));
-  t.throws<RangeError>(() => s.chunks(0.5));
-  t.throws<RangeError>(() => s.chunks(-1));
+  t.throws(() => s.chunks(0), { instanceOf: RangeError });
+  t.throws(() => s.chunks(0.5), { instanceOf: RangeError });
+  t.throws(() => s.chunks(-1), { instanceOf: RangeError });
   t.deepEqual([...s.chunks(5)], [[0, 1, 2, 3, 4], [5, 6, 7, 8, 9]]);
   t.deepEqual([...s.chunks(3)], [[0, 1, 2], [3, 4, 5], [6, 7, 8], [9]]);
   t.deepEqual([...s.chunks(3.5)], [[0, 1, 2], [3, 4, 5], [6, 7, 8], [9]]);
@@ -105,6 +115,7 @@ test("concat", t => {
 test("count", t => {
   t.is(new Sequence([]).count(), 0);
   t.is(new Sequence([1]).count(), 1);
+  t.is(Sequence.range(100).count(), 100);
   t.is(new Sequence(new Set()).count(), 0);
   t.is(new Sequence(new Set([1])).count(), 1);
   t.is(new Sequence(new Map([])).count(), 0);
@@ -277,3 +288,66 @@ test("windows", t => {
     ["AB", "BC", "CD"]
   );
 });
+
+//#region NumberSequence
+test("avg", t => {
+  t.is(Sequence.range(5).avg(), 2);
+});
+
+test("cumulativeAvg", t => {
+  t.deepEqual([...Sequence.range(5).cumulativeAvg()], [0, 0.5, 1, 1.5, 2]);
+});
+
+//
+// test("random", t => {
+//   t.throws(() => Sequence.random({ fn: 4 } as any), { instanceOf: TypeError });
+//   t.throws(() => Sequence.random({
+//     min: "A", integer: true, fn: (a: number, b: number) => a + b
+//   } as any).first(), { instanceOf: TypeError });
+//   t.throws(() => Sequence.random({
+//     max: "A", integer: true, fn: (a: number, b: number) => a + b
+//   } as any).first(), { instanceOf: TypeError });
+
+//   t.throws(() => Sequence.random({
+//     min: "A", integer: true, fn: () => 0
+//   } as any).first(), { instanceOf: TypeError });
+//   t.throws(() => Sequence.random({
+//     max: "A", integer: true, fn: () => 0
+//   } as any).first(), { instanceOf: TypeError });
+//   t.throws(() => Sequence.random({
+//     fn: (a: number) => a,
+//     integer: true,
+//   } as any).first(), { instanceOf: TypeError });
+
+//   t.true(Sequence.random({
+//     min: 3, max: 10, integer: true, fn: crypto.randomInt
+//   }).take(1000).every(v => (v | 0) === v && v >= 3 && v < 10));
+//   t.true(Sequence.random({
+//     min: -1, max: 2, integer: true, fn: crypto.randomInt
+//   }).take(1000).every(v => (v | 0) === v && v >= -1 && v < 2));
+//   t.true(Sequence.random({
+//     min: 3, max: 10, integer: true
+//   }).take(1000).every(v => (v | 0) === v && v >= 3 && v < 10));
+//   t.true(Sequence.random().take(1000).every(v => v >= 0 && v < 1));
+// });
+
+test("sum", t => {
+  t.is(Sequence.range(10).sum(), 45);
+});
+
+test("nproduct", t => {
+  t.is(new NumberSequence([3, 7, 9]).product(), 189);
+});
+
+test("stdev", t => {
+  // Inputs from the output of random(), bucketized.
+  const n = new NumberSequence([
+    99753, 99844, 100312, 99825, 99816,
+    100140, 100256, 99969, 100396, 99689,
+  ]);
+  // Yeah, yeah, I know.  Float===.
+  // I calculated this in google sheets with stdevp().
+  t.is(n.stdev(), 242.2403764858371);
+});
+
+//#endregion NumberSequence

@@ -1,5 +1,27 @@
 /* eslint-disable @typescript-eslint/no-this-alias */
 
+import Counter from "./counter.js";
+
+//
+// type minMaxFun = (min: number, max: number) => number;
+// type randFun = () => number;
+// type eitherRand = minMaxFun | randFun;
+
+// function isMinMaxFun(fn: any): fn is minMaxFun {
+//   return (typeof fn === "function") && (fn.length > 1);
+// }
+// function isRandFun(fn: any): fn is randFun {
+//   return (typeof fn === "function") && (fn.length === 0);
+// }
+
+// interface RandomProps {
+//   min?: number;
+//   max?: number;
+//   integer?: boolean;
+//   fn?: eitherRand;
+// }
+const RAND_MAX = 0xFFFFFFFFFFFF;
+
 /**
  * Are the two items equal?
  *
@@ -58,16 +80,21 @@ type reduceCallback<T, A>
  * https://github.com/aureooms/js-itertools, to translate to TS
  * and avoid the need for a runtime.
  */
-export default class Sequence<T> {
+export class Sequence<T> {
   it: Iterable<T>;
+
+  #length?: number;
 
   /**
    * Creates an instance of Sequence.
    *
    * @param iterable - The iterable to wrap.
    */
-  constructor(iterable: Iterable<T>) {
+  constructor(iterable: Iterable<T>, len?: number) {
     this.it = iterable;
+    if (len !== undefined) {
+      this.#length = len;
+    }
   }
 
   //#region Type Checking
@@ -146,8 +173,8 @@ export default class Sequence<T> {
    *
    * @returns Factorial sequence
    */
-  static factorial(): Sequence<number> {
-    return new Sequence<number>({
+  static factorial(): NumberSequence {
+    return new NumberSequence({
       * [Symbol.iterator](): Generator<number, void, undefined> {
         let count = 1;
         let total = 1;
@@ -203,6 +230,144 @@ export default class Sequence<T> {
     });
   }
 
+  //
+  // static random(props: RandomProps = {}): NumberSequence {
+  //   props = {
+  //     min: 0,
+  //     max: 1,
+  //     integer: false,
+  //     fn: Math.random,
+  //     ...props,
+  //   };
+  //   if (typeof props.fn !== "function") {
+  //     throw new TypeError("fn must be function");
+  //   }
+  //   if (props.integer) {
+
+  //   } else {
+  //     // Get real
+
+  //     // Special case (0,1]
+  //     if (props.min === 0 && props.max === 1 && isRandFun(props.fn)) {
+  //       return new NumberSequence({
+  //         * [Symbol.iterator]() {
+  //           if (!isRandFun(props.fn)) {
+  //             throw new TypeError("Impossible function type");
+  //           }
+  //           while (true) {
+  //             yield props.fn();
+  //           }
+  //         }
+  //       });
+  //     } else {
+  //       // This is likely biased, but care about that later.
+  //       return new NumberSequence({
+  //         * [Symbol.iterator]() {
+  //           if (!isRandFun(props.fn)) {
+  //             throw new TypeError("Impossible function type");
+  //           }
+  //           if (typeof props.min !== "number") {
+  //             throw new TypeError("min must be number or unspecified");
+  //           }
+  //           if (typeof props.max !== "number") {
+  //             throw new TypeError("max must be number or unspecified");
+  //           }
+
+  //           const range = props.max - props.min;
+  //           while (true) {
+  //             yield (props.fn() * range) + props.min;
+  //           }
+  //         }
+  //       });
+  //     }
+  //   }
+  // }
+
+  // static randomInt(
+  //   minMaxFn?: number | randFun | minMaxFun,
+  //   maxFn?: number | randFun | minMaxFun,
+  //   fn?: randFun | minMaxFun
+  // ) {
+  //   let min = 0;
+  //   let cb: eitherRand;
+  //   switch (typeof minMaxFn) {
+  //     case "object":
+  //       if (!minMaxFn) {
+  //         throw new TypeError("")
+  //       }
+  //     case "undefined":
+  //       break;
+  //     case "function":
+  //       cb = minMaxFn;
+  //       break;
+  //     default:
+  //       throw new TypeError()
+  //   }
+  //   if (isMinMaxFun(minMaxFn) || isRandFun(minMaxFn)) {
+  //     cb = minMaxFn;
+  //   } else if (isMinMaxFun(minMaxFn) || isRandFun(minMaxFn))
+  //   props = {
+  //     min: 0,
+  //     max: 1,
+  //     fn: Math.random,
+  //     ...props,
+  //   };
+  //   if (typeof props.fn !== "function") {
+  //     throw new TypeError("fn must be function");
+  //   }
+  //   if (props.fn.length > 1) {
+  //     // Probably crypto.randomInt
+  //     return new NumberSequence({
+  //       * [Symbol.iterator]() {
+  //         // Type guards didn't propagate
+  //         if (!isMinMaxFun(props.fn)) {
+  //           /* c8 ignore next */
+  //           throw new TypeError("fn must be function or unspecified");
+  //           /* c8 ignore next */
+  //         }
+  //         if (typeof props.min !== "number") {
+  //           throw new TypeError("min must be number or unspecified");
+  //         }
+  //         if (typeof props.max !== "number") {
+  //           throw new TypeError("max must be number or unspecified");
+  //         }
+
+  //         while (true) {
+  //           yield props.fn(props.min, props.max);
+  //         }
+  //       }
+  //     });
+  //   } else {
+  //     return new NumberSequence({
+  //       * [Symbol.iterator]() {
+  //         // Type guards didn't propagate
+  //         if (!isRandFun(props.fn)) {
+  //           throw new TypeError("fn must be function or unspecified");
+  //         }
+  //         if (typeof props.min !== "number") {
+  //           throw new TypeError("min must be number or unspecified");
+  //         }
+  //         if (typeof props.max !== "number") {
+  //           throw new TypeError("max must be number or unspecified");
+  //         }
+
+  //         // You really should have used crypto.randomInt
+  //         // De-bias as much as we can.
+  //         // Note: rand()*(2 ** x) should be uniform
+  //         const range = props.max - props.min;
+  //         const range2 = 1 << Math.ceil(Math.log2(range));
+  //         const limit = range2 - (range2 % range);
+  //         while (true) {
+  //           const x = Math.floor(props.fn() * range2);
+  //           if (x < limit) {
+  //             yield (x % range) + props.min;
+  //           }
+  //         }
+  //       }
+  //     });
+  //   }
+  // }
+
   /**
    * Like Python's range(), generate a series of numbers.
    *
@@ -211,11 +376,15 @@ export default class Sequence<T> {
    * @param step - How much to add each time, may be negative
    * @returns A sequence that yields each number in the range
    */
-  static range(start: number, stop?: number, step = 1): Sequence<number> {
-    return new Sequence({
+  static range(start: number, stop?: number, step = 1): NumberSequence {
+    if (stop === undefined) {
+      [start, stop] = [0, start];
+    }
+    const count = Math.ceil((stop - start) / step);
+    return new NumberSequence({
       * [Symbol.iterator]() {
         if (stop === undefined) {
-          [start, stop] = [0, start];
+          throw new TypeError("impossible");
         }
         if (step < 0) {
           for (let i = start; i > stop; i += step) {
@@ -227,7 +396,7 @@ export default class Sequence<T> {
           }
         }
       }
-    });
+    }, count < 0 ? 0 : count);
   }
 
   /**
@@ -239,8 +408,8 @@ export default class Sequence<T> {
    * @param step - How much to add each time, may be negative
    * @returns A sequence that yields each number in the range
    */
-  static rangeI(start: number, stop?: number, step = 1): Sequence<number> {
-    return new Sequence({
+  static rangeI(start: number, stop?: number, step = 1): NumberSequence {
+    return new NumberSequence({
       * [Symbol.iterator]() {
         if (stop === undefined) {
           [start, stop] = [0, start];
@@ -407,6 +576,9 @@ export default class Sequence<T> {
    * @returns The number of items.
    */
   count(): number {
+    if (this.#length !== undefined) {
+      return this.#length;
+    }
     if (Array.isArray(this.it)) {
       return this.it.length;
     }
@@ -726,6 +898,14 @@ export default class Sequence<T> {
       prev = i;
     }
     return prev;
+  }
+
+  histogram(): { [id: string]: number } {
+    const counts = new Counter();
+    for (const i of this.it) {
+      counts.add(i);
+    }
+    return counts.points;
   }
 
   /**
@@ -1072,7 +1252,7 @@ export default class Sequence<T> {
           }
         }
       }
-    });
+    }, n);
   }
 
   /**
@@ -1157,3 +1337,113 @@ export default class Sequence<T> {
 
   //#endregion Methods
 }
+
+export class NumberSequence extends Sequence<number> {
+  /**
+   * The mean of the series.
+   *
+   * @returns The average of the numbers in the sequence
+   */
+  avg(): number {
+    let max = -1;
+    const tot = this.reduce((t, v, i) => {
+      max = i;
+      return t + v;
+    }, 0);
+    if (max === -1) {
+      return NaN;
+    }
+    return tot / (max + 1);
+  }
+
+  /**
+   * Cumulative Moving Average (CMA).  A sequence that yields the mean
+   * up to the point of each item in the original sequence.
+   *
+   * @returns A sequence with the mean so far.
+   */
+  cumulativeAvg(): NumberSequence {
+    // See:
+    // https://en.wikipedia.org/wiki/Moving_average#Cumulative_moving_average
+    const that = this;
+    return new NumberSequence({
+      * [Symbol.iterator]() {
+        const it = that.it[Symbol.iterator]();
+        let item = it.next();
+        if (item.done) {
+          return;
+        }
+        let count = 0;
+        let cma: number = item.value;
+        while (!item.done) {
+          count++;
+          cma += (item.value - cma) / count;
+          yield cma;
+          item = it.next();
+        }
+      }
+    });
+  }
+
+  histogramArray(): NumberSequence {
+    return new NumberSequence(this.reduce<number[]>((t, v) => {
+      const x = Math.floor(v);
+      t[x] = (t[x] ?? 0) + 1;
+      return t;
+    }, []));
+  }
+
+  sum(): number {
+    return this.reduce((t, v) => t + v);
+  }
+
+  product(): number {
+    return this.reduce((t, v) => t * v);
+  }
+
+  cumulativeStdev(): NumberSequence {
+    // See:
+    // https://en.wikipedia.org/wiki/Standard_deviation#Rapid_calculation_methods
+    const that = this;
+    return new NumberSequence({
+      * [Symbol.iterator]() {
+        const it = that.it[Symbol.iterator]();
+        let item = it.next();
+        if (item.done) {
+          return;
+        }
+        let count = 0;
+        let cma: number = item.value;
+        let Q = 0;
+        while (!item.done) {
+          count++;
+          const newCMA = cma + (item.value - cma) / count;
+          Q += (item.value - cma) * (item.value - newCMA);
+          cma = newCMA;
+          yield Math.sqrt(Q / count);
+          item = it.next();
+        }
+      }
+    });
+  }
+
+  stdev(): number {
+    let count = 0;
+    let cma = 0;
+    let Q = 0;
+    for (const n of this.it) {
+      count++;
+      const newCMA = cma + (n - cma) / count;
+      Q += (n - cma) * (n - newCMA);
+      cma = newCMA;
+    }
+    return Math.sqrt(Q / count);
+  }
+
+  // This comes up enough that it's worth optimizing.
+  take(n: number): NumberSequence {
+    return new NumberSequence(super.take(n).it, n);
+  }
+}
+
+export default Sequence;
