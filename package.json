@@ -13,6 +13,7 @@
   "author": "Joe Hildebrand <joe-github@cursive.net>",
   "license": "MIT",
   "dependencies": {
+    "heap-js": "^2.1.6",
     "peggy": "^1.2.0",
     "ts-node": "^10.4.0"
   },
