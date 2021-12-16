@@ -12,6 +12,7 @@ specifiers:
   eslint-plugin-node: ^11.1.0
   eslint-plugin-tsdoc: ^0.2.14
   heap-js: ^2.1.6
+  nofilter: ^3.1.0
   peggy: ^1.2.0
   sinon: ^12.0.1
   ts-node: ^10.4.0
@@ -19,6 +20,7 @@ specifiers:
 
 dependencies:
   heap-js: 2.1.6
+  nofilter: 3.1.0
   peggy: 1.2.0
   ts-node: 10.4.0_68212d3c5f342a0c59715bbaaf1875e7
 
@@ -1490,7 +1492,6 @@ packages:
   /nofilter/3.1.0:
     resolution: {integrity: sha512-l2NNj07e9afPnhAhvgVrCD/oy2Ai1yfLpuo3EpiO1jFTsB4sFz6oIfAfSZyQzVpkZQ9xS8ZS5g1jCBgq4Hwo0g==}
     engines: {node: '>=12.19'}
-    dev: true
 
   /normalize-path/3.0.0:
     resolution: {integrity: sha512-6eZs5Ls3WtCisHWp9S2GUy8dqkpGi4BVSz3GaqiE6ezub0512ESztXUwUB6C6IKbQkY2Pnb/mD4WYojCRwcwLA==}
