@@ -1,7 +1,6 @@
 #!/usr/bin/env node --loader ts-node/esm --experimental-specifier-resolution=node
 import NoFilter from "nofilter";
 import Utils from "./utils.js"; // Really .ts
-import util from "util";
 
 interface Packet {
   id?: number;
