@@ -268,6 +268,10 @@ test("some", t => {
   t.true(new Sequence([1, 3, 5]).some(smallThis, u));
 });
 
+test("startWhen", t => {
+  t.deepEqual([...Sequence.range(10).startWhen(x => x > 8)], [9]);
+});
+
 test("take", t => {
   t.deepEqual([...Sequence.range(3).take(0)], []);
   t.deepEqual([...Sequence.range(3).take(3)], [0, 1, 2]);
@@ -280,6 +284,13 @@ test("trunc", t => {
   t.deepEqual([...Sequence.range(3).trunc(0)], [0, 1, 2]);
   t.deepEqual([...Sequence.range(10).trunc(3)], [0, 1, 2, 3, 4, 5, 6]);
   t.deepEqual([...Sequence.range(3).trunc(-3)], [0, 1, 2]);
+});
+
+test("until", t => {
+  t.deepEqual(
+    [...new Sequence("ABCD").until(x => x === "C")],
+    ["A", "B"]
+  );
 });
 
 test("windows", t => {

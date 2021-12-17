@@ -1225,6 +1225,33 @@ export class Sequence<T> {
   }
 
   /**
+   * Don't allow anything through until fn returns true for the first time.
+   * See the "until" method.
+   *
+   * @param fn - Return true to turn on the flow.
+   * @returns Sequence with the front excluded.
+   */
+  startWhen(fn: filterCallback<T>): Sequence<T> {
+    const that = this;
+    return new Sequence({
+      * [Symbol.iterator]() {
+        let i = 0;
+        let running = false;
+        for (const t of that.it) {
+          if (running) {
+            yield t;
+          } else {
+            if (fn(t, i++, that)) {
+              running = true;
+              yield t;
+            }
+          }
+        }
+      }
+    });
+  }
+
+  /**
    * Yields the first <code>n</code> elements of the input iterable. If
    * <code>n</code> is negative, behaves like
    * <code>{@link trunc}(iterable, -n)</code>.
@@ -1309,6 +1336,27 @@ export class Sequence<T> {
           }
           buffer[cur] = value;
           cur = (cur + 1) % n;
+        }
+      }
+    });
+  }
+
+  /**
+   * Return the start of a sequence, until fn returns true;
+   *
+   * @param fn - Return true to stop the flow.
+   * @returns A sequence with the back lopped off.
+   */
+  until(fn: filterCallback<T>): Sequence<T> {
+    const that = this;
+    return new Sequence({
+      * [Symbol.iterator]() {
+        let i = 0;
+        for (const t of that.it) {
+          if (fn(t, i++, that)) {
+            break;
+          }
+          yield t;
         }
       }
     });
