@@ -36,7 +36,7 @@ function part1(inp: Input): number {
   let max = -Infinity;
   for (let i = 0; i < lim; i++) {
     const stops = [
-      ...new Sequence(yPos(i)).until(y => y < minY).startWhen(y => y < maxY)
+      ...new Sequence(yPos(i)).until(y => y < minY).startWhen(y => y <= maxY)
     ];
     if (stops.length > 0) {
       max = i;
