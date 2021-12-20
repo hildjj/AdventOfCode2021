@@ -220,7 +220,7 @@ export class Sequence<T> {
           const r2: U[][] = [];
           for (const x of result) {
             for (const y of pool) {
-              r2.push(x.concat(y));
+              r2.push([...x, y]);
             }
             result = r2;
           }

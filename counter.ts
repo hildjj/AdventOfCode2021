@@ -7,6 +7,13 @@ export default class Counter<T> {
   points: { [id: string]: number } = {};
 
   /**
+   * Iterate over the entries in points.
+   */
+  * [Symbol.iterator](): Generator<[string, number], void, undefined> {
+    yield* Object.entries(this.points);
+  }
+
+  /**
    * Add a thing.
    *
    * @param vals - The list of values that describe the thing.
@@ -49,5 +56,31 @@ export default class Counter<T> {
         }
         return t + res;
       }, 0);
+  }
+
+  /**
+   * The maximum entry.
+   *
+   * @returns the [key, value] of the maximum value, or null if empty.
+   */
+  max(): [string, number] | null {
+    let mv = -Infinity;
+    let mk: string | null = null;
+    for (const [k, v] of this) {
+      if (v > mv) {
+        mv = v;
+        mk = k;
+      }
+    }
+    return (mk === null) ? mk : [mk, mv];
+  }
+
+  /**
+   * How many unique things have been added?
+   *
+   * @returns The count.
+   */
+  size(): number {
+    return Object.keys(this.points).length;
   }
 }
