@@ -1373,11 +1373,11 @@ export class Sequence<T> {
     return new Sequence({
       * [Symbol.iterator]() {
         const [buf, it] = that.split(size);
-        yield buf;
+        yield [...buf];
         for (const t of it) {
           buf.shift();
           buf.push(t);
-          yield buf;
+          yield [...buf];
         }
       }
     });
