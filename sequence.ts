@@ -1372,13 +1372,33 @@ export class Sequence<T> {
     const that = this;
     return new Sequence({
       * [Symbol.iterator]() {
-        const [buf, it] = that.split(size);
-        yield [...buf];
-        for (const t of it) {
-          buf.shift();
-          buf.push(t);
-          yield [...buf];
+        const it = that.it[Symbol.iterator]();
+        const last: T[] = [];
+        for (let i = 0; i < size; i++) {
+          const n = it.next();
+          if (n.done) {
+            return;
+          }
+          last.push(n.value);
         }
+        do {
+          yield [...last];
+          const next = it.next();
+          if (next.done) {
+            return;
+          }
+          last.shift();
+          last.push(next.value);
+        } while (true);
+
+        //
+        // const [buf, it] = that.split(size);
+        // yield [...buf];
+        // for (const t of it) {
+        //   buf.shift();
+        //   buf.push(t);
+        //   yield [...buf];
+        // }
       }
     });
   }
