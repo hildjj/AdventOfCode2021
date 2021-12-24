@@ -1,4 +1,4 @@
-#!/usr/bin/env node --loader ts-node/esm --experimental-specifier-resolution=node --prof
+#!/usr/bin/env node --loader ts-node/esm --experimental-specifier-resolution=node
 import Sequence from "./sequence.js";
 import Utils from "./utils.js"; // Really .ts
 
